@@ -1,0 +1,115 @@
+<div id="status-widget">
+  <a href="https://status.gatech.edu/">
+    <div class="status-info">
+      <h3>OIT Service Status</h3>
+      <p class="status-description"></p>
+    </div>
+  </a>
+</div>
+
+<script type="text/javascript">
+const statusAPI = 'https://2589849383268831.hostedstatus.com/1.0/status/5be9af0e5638b904c2030699';
+fetch(statusAPI, {mode: 'cors'})
+  .then(function(response) {
+    return response.json();
+  })
+  .then(function(json) {    
+    const statusCode = json.result.status_overall.status_code;
+    const statusMessage = json.result.status_overall.status;
+
+    console.log('Request successful', statusCode);
+    console.log('Request successful', statusMessage);
+    
+    const widget = document.getElementById('status-widget');
+
+    document.querySelector('.status-description').textContent = statusMessage;
+    
+    // No status returned in valid JSON feed
+    if (statusCode === undefined) {
+      widget.style.setProperty("display", "none");
+      return;
+    } 
+    // Operational Statuses
+    if (statusCode === 100) {
+      widget.classList.add("working");
+      widget.style.setProperty("display", "none");
+    }
+    // Scheduled Maintenance
+    if (statusCode === 200) {
+      widget.classList.add("scheduled");
+    }
+    // Degraded Performance || Partial Outage
+    if (statusCode === 300 || statusCode === 400) {
+      widget.classList.add("warning");
+    }
+    // Service Disruption || Security Issue
+    if (statusCode === 500 || statusCode === 600) {
+      widget.classList.add("outage");
+    }    
+    
+  })
+  .catch(function(error) {
+    console.log('Fetching failed', error)
+  });
+</script>
+<style>
+:root {
+  --gt-gold: 179, 163, 105;
+  /* accessible GT Gold headlines on white depending on size */
+  --gt-gold-med: 164, 146, 90;
+  --gt-drk-gold: 133, 116, 55;
+  --gt-gold-dark: 133, 116, 55; 
+    
+  --gt-buzz: 235, 183, 40;
+  --gt-blue-link: 0, 79, 159;
+
+  --gt-bobbyjones: 55, 113, 23;
+  --gt-georgiaclay: 173, 64, 37;
+}
+
+/* Status.io Widget */
+#status-widget {
+  width: 100%;
+  max-width: 20rem;
+  margin: 1rem;
+}
+#status-widget a {
+  display: block;
+  text-decoration: none;
+  color: #000;
+}
+#status-widget h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 1.5rem;
+  color: rgb(var(--gt-gold-med, 179, 163, 105));
+}
+#status-widget p {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 1rem;
+  font-family: sans-serif;
+}
+.status-info {
+  display: grid;
+  grid-template-columns: 80% 20%;
+  grid-column-gap: 0.15rem;
+}
+.status-info::after {
+  grid-area: indicator;
+  grid-row: 1 / 3;
+  grid-column: 2 / 3;
+  justify-self: center;
+  align-self: center;
+
+  content: " ";
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.75rem;
+}
+.working .status-info::after   { background: green; background: rgb(var(--gt-bobbyjones)); }
+.warning .status-info::after   { background: yellow; background: rgb(var(--gt-buzz)); }
+.outage .status-info::after    { background: red; background: rgb(var(--gt-georgiaclay)); }
+.scheduled .status-info::after { background: blue; background: rgb(var(--gt-blue-link)); }
+</style>
